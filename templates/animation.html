@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="split left" style="display: none;">
+    <h2 align="center">Enter Text or Use Mic</h2>
+    <br>
+    <form id="speechForm" action="" method="post" align="left">
+        {% csrf_token %}
+        <input type="text" name="sen" class="mytext" id="speechToText" placeholder="">
+    </form>
+    <br>
+    <table cellspacing="20px">
+        <tr>
+            <td class="td">The text that you entered is:</td>
+            <td class="td" id="enteredText">{{ text }}</td>
+        </tr>
+        <tr>
+            <td class="td">Key words in sentence:</td>
+            <td class="td">
+                <ul class="td" id="list" align="center">
+                    {% for word in words %}
+                    <li id="{{ forloop.counter0 }}" style="margin-right: 8px">{{ word }}</li>
+                    {% endfor %}
+                </ul>
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="right">
+    <h2 align="center">Sign Language Animation</h2>
+    <div style="text-align:center">  &nbsp&nbsp
+        <video id="videoPlayer" width="600" height="350" preload="auto">
+            <source src="" type="video/mp4">
+            Your browser does not support HTML5 video.
+        </video>
+    </div>
+</div>
+
+<script>
+    var recognition;
+
+    function startRecognition() {
+        recognition = new webkitSpeechRecognition();
+        recognition.lang = 'en-IN';
+        recognition.continuous = true; // Continuous recognition
+        recognition.interimResults = true; // Enable interim results for faster recognition
+
+        recognition.onresult = function(event) {
+            var result = event.results[event.results.length - 1][0].transcript;
+            document.getElementById('speechToText').value = result;
+            handleVoiceInput(result);
+        }
+
+        recognition.onerror = function(event) {
+            console.error('Speech recognition error:', event.error);
+        }
+
+        recognition.onend = function() {
+            console.log('Speech recognition ended. Restarting...');
+            startRecognition(); // Restart recognition
+        }
+
+        recognition.start();
+    }
+
+    startRecognition();
+
+    function handleVoiceInput(input) {
+        if (input.trim() !== "") {
+            // Automatically submit the form when input is not empty
+            document.getElementById("speechForm").submit();
+        }
+    }
+
+    // Function to play the video
+    function playVideo(videoSource) {
+        var videoPlayer = document.getElementById("videoPlayer");
+        videoPlayer.src = videoSource;
+        videoPlayer.load();
+        videoPlayer.play();
+    }
+
+    function playVideos() {
+        var videos = document.getElementById("list").getElementsByTagName("li");
+        var videoSource = [];
+        for (var j = 0; j < videos.length; j++) {
+            videoSource[j] = "/static/" + videos[j].innerHTML.trim() + ".mp4";
+        }
+
+        var currentIndex = 0;
+        var videoCount = videoSource.length;
+
+        // Play the first video
+        playVideo(videoSource[0]);
+
+        // Play subsequent videos with a delay
+        var interval = setInterval(function() {
+            if (currentIndex < videoCount - 1) {
+                currentIndex++;
+                playVideo(videoSource[currentIndex]);
+            } else {
+                clearInterval(interval);
+            }
+        }, 5000); // Change this interval as needed
+    }
+
+    // Start playing videos when the page loads
+    window.onload = playVideos;
+</script>
+
+{% endblock %}

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Language Converter</title>
+    <script>
+        function fetchLatestAction() {
+            fetch('/latest-action/')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('camera_feed').innerText = data.action;
+                    
+                });
+        }
+
+        // Poll for the latest action every second
+        setInterval(fetchLatestAction, 1000);
+    </script>
+</head>
+<body>
+    <h1>Latest Detected Action: <span id="latest-action">None</span></h1>
+    <h2>Current Mode: <span id="current-mode">sign-to-speech</span></h2>
+</body>
+</html>
